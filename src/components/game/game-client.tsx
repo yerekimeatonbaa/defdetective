@@ -204,7 +204,7 @@ export default function GameClient() {
   useEffect(() => {
     if (!wordData || gameState !== "playing") return;
   
-    const isWon = wordData.word.split('').every(char => guessedLetters.correct.includes(char.toLowerCase()));
+    const isWon = displayedWord.every(item => item.revealed);
     
     if (isWon) {
       setGameState("won");
@@ -225,7 +225,7 @@ export default function GameClient() {
     } else if (guessedLetters.incorrect.length >= MAX_INCORRECT_TRIES) {
       setGameState("lost");
     }
-  }, [guessedLetters, wordData, level, sounds, playSound, startNewGame, updateFirestoreUser, gameState]);
+  }, [guessedLetters, wordData, level, sounds, playSound, startNewGame, updateFirestoreUser, gameState, displayedWord]);
 
   const incorrectTriesLeft = MAX_INCORRECT_TRIES - guessedLetters.incorrect.length;
   const hintDisabled = isHintLoading || !!hint || !user;
@@ -313,5 +313,3 @@ export default function GameClient() {
     </div>
   );
 }
-
-    
