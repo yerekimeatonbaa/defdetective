@@ -18,7 +18,7 @@ import {
   updateProfile,
   deleteUser,
 } from 'firebase/auth';
-import { doc, setDoc, updateDoc, deleteDoc, getDoc } from 'firebase/firestore';
+import { doc, setDoc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { useFirebase } from '@/firebase';
 import { useRouter } from 'next/navigation';
 import { errorEmitter } from '@/firebase/error-emitter';
@@ -59,7 +59,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         router.push('/');
       } catch (error) {
         console.error('Login failed:', error);
-        // Handle error, e.g., show a toast message
       } finally {
         setLoading(false);
       }
@@ -75,7 +74,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const newUser = userCredential.user;
         await updateProfile(newUser, { displayName: name });
         
-        // Create user profile in Firestore
         const userRef = doc(firestore, 'userProfiles', newUser.uid);
         const userData = {
           id: newUser.uid,
@@ -86,7 +84,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           rank: getRankForScore(0),
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
-          hints: 5, // Start with 5 free hints
+          hints: 5,
         };
 
         setDoc(userRef, userData)
@@ -120,11 +118,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         await updateProfile(user, { displayName: newName });
         const userRef = doc(firestore, 'userProfiles', user.uid);
         
-        const userDoc = await getDoc(userRef);
-        if(!userDoc.exists()) {
-            throw new Error("User profile not found");
-        }
-
         const updateData = { username: newName };
         
         updateDoc(userRef, updateData)
@@ -136,10 +129,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 });
                 errorEmitter.emit('permission-error', permissionError);
             });
-        // Force a refresh of the user object to reflect the new name
+
         if (auth.currentUser) {
             await auth.currentUser.reload();
-            setUser(auth.currentUser);
+            const refreshedUser = { ...auth.currentUser };
+            setUser(refreshedUser);
         }
       } catch (error) {
         console.error("Error updating username:", error);
@@ -150,21 +144,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!user) return;
     setLoading(true);
     try {
-        // Delete Firestore document first
         const userRef = doc(firestore, 'userProfiles', user.uid);
-        await deleteDoc(userRef);
+        
+        deleteDoc(userRef).catch(err => {
+             const permissionError = new FirestorePermissionError({
+                    path: userRef.path,
+                    operation: 'delete',
+                });
+                errorEmitter.emit('permission-error', permissionError);
+        });
 
-        // Then delete the Firebase Auth user
         await deleteUser(user);
         
         router.push("/signup");
 
     } catch (error) {
         console.error("Error deleting account:", error);
-        // If deletion fails, you might want to handle re-authentication
         setLoading(false);
     }
-  }, [user, firestore, router]);
+  }, [user, firestore, auth, router]);
 
   const value: AuthContextType = { user, loading, login, signup, logout, updateUsername, deleteAccount };
 
