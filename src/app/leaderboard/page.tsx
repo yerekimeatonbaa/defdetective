@@ -35,6 +35,7 @@ export default function LeaderboardPage() {
               <TableRow>
                 <TableHead className="w-[80px] text-center">Rank</TableHead>
                 <TableHead>Player</TableHead>
+                <TableHead>Rank</TableHead>
                 <TableHead className="text-right">Score</TableHead>
                 <TableHead className="w-[100px] text-right">Level</TableHead>
               </TableRow>
@@ -49,6 +50,7 @@ export default function LeaderboardPage() {
                       <Skeleton className="h-5 w-24" />
                     </div>
                   </TableCell>
+                  <TableCell><Skeleton className="h-5 w-20" /></TableCell>
                   <TableCell><Skeleton className="h-5 w-16 ml-auto" /></TableCell>
                   <TableCell><Skeleton className="h-5 w-10 ml-auto" /></TableCell>
                 </TableRow>
@@ -69,6 +71,9 @@ export default function LeaderboardPage() {
                         </Avatar>
                         <span className="font-medium">{entry.username} {isCurrentUser && "(You)"}</span>
                       </div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="outline">{entry.rank}</Badge>
                     </TableCell>
                     <TableCell className="text-right font-mono">{entry.totalScore.toLocaleString()}</TableCell>
                     <TableCell className="text-right">

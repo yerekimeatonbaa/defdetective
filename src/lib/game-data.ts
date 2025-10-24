@@ -26,11 +26,10 @@ export const getWordByDifficulty = (difficulty: 'easy' | 'medium' | 'hard'): Wor
   return wordsOfDifficulty[Math.floor(Math.random() * wordsOfDifficulty.length)];
 }
 
-export const scrambleDefinition = (definition: string): string => {
-  const words = definition.split(' ');
-  for (let i = words.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [words[i], words[j]] = [words[j], words[i]];
-  }
-  return words.join(' ');
+export const getRankForScore = (score: number): string => {
+  if (score < 100) return "Rookie Detective";
+  if (score < 500) return "Junior Investigator";
+  if (score < 1000) return "Seasoned Sleuth";
+  if (score < 2000) return "Master Detective";
+  return "Legendary Detective";
 };

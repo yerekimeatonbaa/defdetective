@@ -27,15 +27,30 @@
         },
         "lastLogin": {
           "type": "string",
-          "description": "Timestamp indicating the user's last login.",
+          "description": "The user's last login.",
           "format": "date-time"
+        },
+        "totalScore": {
+          "type": "number",
+          "description": "The user's total accumulated score."
+        },
+        "highestLevel": {
+          "type": "number",
+          "description": "The highest level the user has reached."
+        },
+        "rank": {
+          "type": "string",
+          "description": "The user's current rank based on their score."
         }
       },
       "required": [
         "id",
         "username",
         "email",
-        "createdAt"
+        "createdAt",
+        "totalScore",
+        "highestLevel",
+        "rank"
       ]
     },
     "GameSession": {

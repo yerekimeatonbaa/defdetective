@@ -4,6 +4,7 @@ export type UserProfile = {
     email: string;
     totalScore: number;
     highestLevel: number;
+    rank: string;
     createdAt: string;
     updatedAt: string;
 };

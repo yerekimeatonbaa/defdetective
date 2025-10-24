@@ -21,6 +21,7 @@ import { useFirebase } from '@/firebase';
 import { useRouter } from 'next/navigation';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
+import { getRankForScore } from '@/lib/game-data';
 
 interface AuthContextType {
   user: User | null;
@@ -77,6 +78,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           email: newUser.email,
           totalScore: 0,
           highestLevel: 1,
+          rank: getRankForScore(0),
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
         };

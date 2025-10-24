@@ -81,7 +81,7 @@ export default function ProfilePage() {
           <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
             <div className="flex items-center gap-3">
               <Star className="h-6 w-6 text-yellow-500" />
-              <span className="font-medium">Current Level</span>
+              <span className="font-medium">Highest Level</span>
             </div>
             <Badge variant="secondary" className="text-lg">{userProfile.highestLevel}</Badge>
           </div>
@@ -90,7 +90,7 @@ export default function ProfilePage() {
               <Target className="h-6 w-6 text-green-500" />
               <span className="font-medium">Rank</span>
             </div>
-            <Badge variant="secondary" className="text-lg">#4</Badge>
+            <Badge variant="secondary" className="text-lg">{userProfile.rank}</Badge>
           </div>
         </CardContent>
       </Card>

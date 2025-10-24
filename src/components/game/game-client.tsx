@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useMemo, useTransition } from "react";
-import { getWordByDifficulty, type WordData } from "@/lib/game-data";
+import { getWordByDifficulty, type WordData, getRankForScore } from "@/lib/game-data";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Keyboard } from "@/components/game/keyboard";
@@ -11,11 +11,12 @@ import { getHintAction, getSoundAction } from "@/lib/actions";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/use-auth";
-import { useFirestore } from "@/firebase";
-import { doc, updateDoc, increment } from "firebase/firestore";
+import { useFirestore, useDoc, useMemoFirebase } from "@/firebase";
+import { doc, updateDoc, increment, getDoc } from "firebase/firestore";
 import { useSound } from "@/hooks/use-sound";
 import { errorEmitter } from "@/firebase/error-emitter";
 import { FirestorePermissionError } from "@/firebase/errors";
+import type { UserProfile } from "@/lib/firebase-types";
 
 type GameState = "playing" | "won" | "lost";
 type Difficulty = "easy" | "medium" | "hard";
@@ -39,7 +40,19 @@ export default function GameClient() {
 
   const [sounds, setSounds] = useState<SoundMap>({});
   const { playSound } = useSound();
+
+  const userProfileRef = useMemoFirebase(() => 
+    user ? doc(firestore, "userProfiles", user.uid) : null
+  , [firestore, user]);
+  const { data: userProfile } = useDoc<UserProfile>(userProfileRef);
   
+  useEffect(() => {
+    if(userProfile) {
+      setScore(userProfile.totalScore);
+      setLevel(userProfile.highestLevel);
+    }
+  }, [userProfile]);
+
   useEffect(() => {
     const fetchSounds = async () => {
       const soundKeys = ['correct', 'incorrect', 'win'];
@@ -131,9 +144,17 @@ export default function GameClient() {
   const updateFirestoreUser = useCallback(async (scoreGained: number, newLevel: number) => {
     if (user && firestore) {
         const userRef = doc(firestore, "userProfiles", user.uid);
+        
+        // We need to get the current score to calculate the new rank
+        const userDoc = await getDoc(userRef);
+        const currentScore = userDoc.data()?.totalScore ?? 0;
+        const newTotalScore = currentScore + scoreGained;
+        const newRank = getRankForScore(newTotalScore);
+        
         const updateData = {
             totalScore: increment(scoreGained),
             highestLevel: newLevel,
+            rank: newRank,
             updatedAt: new Date().toISOString(),
         };
 
@@ -160,10 +181,10 @@ useEffect(() => {
       
       const difficulty = getDifficultyForLevel(level);
       const scoreGained = (difficulty === 'easy' ? 10 : difficulty === 'medium' ? 20 : 30);
-      setScore(s => s + scoreGained);
       
       const newLevel = level + 1;
       updateFirestoreUser(scoreGained, newLevel);
+      setScore(s => s + scoreGained);
       
       setTimeout(() => {
         setLevel(newLevel);
@@ -183,7 +204,7 @@ useEffect(() => {
       <div className="flex justify-between items-center">
         <div className="flex items-center gap-2 text-lg">
           <Award className="h-6 w-6 text-primary" />
-          Score: <span className="font-bold">{score}</span>
+          Score: <span className="font-bold">{score.toLocaleString()}</span>
         </div>
         <div className="flex items-center gap-2 text-lg">
           Level: <span className="font-bold">{level}</span>
