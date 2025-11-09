@@ -38,7 +38,7 @@ const gameSoundFlow = ai.defineFlow(
   },
   async query => {
     const {media} = await ai.generate({
-      model: googleAI.model('text-to-speech-1'),
+      model: 'text-to-speech-1',
       prompt: { tts: query },
     });
     if (!media) {
