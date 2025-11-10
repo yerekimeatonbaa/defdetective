@@ -1,3 +1,4 @@
+
 rules_version = '2';
 
 service cloud.firestore {
@@ -8,15 +9,15 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
-    // Allow authenticated users to read the leaderboard and their own profile
-    match /userProfiles/{userProfileId} {
-      allow get, list: if request.auth != null;
-      allow update: if request.auth != null && request.auth.uid == userProfileId;
-    }
-
-    // Allow authenticated users to create their own profile
+    // Allow authenticated users to read any user profile (for leaderboards)
+    // and update their own profile.
     match /userProfiles/{userId} {
+      allow get, list: if request.auth != null;
+      // Allow users to create their own profile upon signup.
+      // The new data must match the user's UID.
       allow create: if request.auth != null && request.auth.uid == userId;
+      // Allow users to update their own profile data.
+      allow update: if request.auth != null && request.auth.uid == userId;
     }
   }
 }
