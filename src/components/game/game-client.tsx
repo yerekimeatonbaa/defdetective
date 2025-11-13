@@ -9,7 +9,8 @@ import { Lightbulb, RotateCw, XCircle, Award, PartyPopper, Clapperboard, Share }
 import { useToast } from "@/hooks/use-toast";
 import { useHintAction } from "@/lib/actions";
 import { getSmartHint } from "@/ai/flows/smart-word-hints";
-import { useGameSounds } from "@/hooks/use-game-sounds";
+import { getSoundAction } from "@/ai/flows/game-sounds-flow";
+import { useSound } from "@/hooks/use-sound";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/use-auth.tsx";
@@ -48,7 +49,7 @@ export default function GameClient() {
   const [isWatchingAd, setIsWatchingAd] = useState(false);
   const [adProgress, setAdProgress] = useState(0);
 
-  const { playSound } = useGameSounds();
+  const { playSound: playSoundFromUrl } = useSound();
 
   const userProfileRef = useMemoFirebase(() => 
     user ? doc(firestore, "userProfiles", user.uid) : null
@@ -63,6 +64,17 @@ export default function GameClient() {
   }, [userProfile]);
 
   const { toast } = useToast();
+  
+  const playSound = useCallback(async (soundType: 'correct' | 'incorrect' | 'win' | 'hint' | 'click') => {
+    try {
+      const sound = await getSoundAction({soundType});
+      if(sound?.media) {
+        playSoundFromUrl(sound.media);
+      }
+    } catch(e) {
+      console.error("Failed to play sound", e)
+    }
+  }, [playSoundFromUrl])
 
   const getDifficultyForLevel = (level: number): Difficulty => {
     if (level <= 5) return 'easy';
@@ -97,10 +109,10 @@ export default function GameClient() {
     const lowerLetter = letter.toLowerCase();
     if (wordData?.word.toLowerCase().includes(lowerLetter)) {
       setGuessedLetters(prev => ({ ...prev, correct: [...prev.correct, lowerLetter] }));
-      playSound('correct', 'medium');
+      playSound('correct');
     } else {
       setGuessedLetters(prev => ({ ...prev, incorrect: [...prev.incorrect, lowerLetter] }));
-      playSound('incorrect', 'medium');
+      playSound('incorrect');
     }
   }, [wordData, gameState, guessedLetters, playSound, revealedByHint]);
 
@@ -132,7 +144,7 @@ export default function GameClient() {
           setHint(result.hint);
           const newHintedLetters = result.hint.split('').filter(char => char !== '_').map(char => char.toLowerCase());
           setRevealedByHint(newHintedLetters);
-          playSound('hint', 'medium');
+          playSound('hint');
         } else {
            throw new Error("Invalid hint response from AI.");
         }
@@ -215,7 +227,7 @@ export default function GameClient() {
     
     if (isWon) {
       setGameState("won");
-      playSound('win', 'high');
+      playSound('win');
       
       const difficulty = getDifficultyForLevel(level);
       const scoreGained = (difficulty === 'easy' ? 10 : difficulty === 'medium' ? 20 : 30);
@@ -337,5 +349,3 @@ export default function GameClient() {
     </div>
   );
 }
-
-    

@@ -71,4 +71,6 @@ export const gameSoundsFlow = ai.defineFlow(
   }
 );
 
-    
+export async function getSoundAction(input: GameSoundInput) {
+    return gameSoundsFlow(input.soundType);
+}
