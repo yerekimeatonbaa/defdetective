@@ -17,6 +17,7 @@ import {
   signInWithEmailAndPassword,
   updateProfile,
   deleteUser,
+  sendPasswordResetEmail,
 } from 'firebase/auth';
 import { doc, setDoc, updateDoc, deleteDoc, serverTimestamp } from 'firebase/firestore';
 import { useFirebase } from '@/firebase';
@@ -33,6 +34,7 @@ interface AuthContextType {
   logout: () => void;
   updateUsername: (newName: string) => Promise<void>;
   deleteAccount: () => Promise<void>;
+  sendPasswordReset: (email: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -59,6 +61,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         router.push('/');
       } catch (error) {
         console.error('Login failed:', error);
+        // Here you could use the toast to show an error to the user
       } finally {
         setLoading(false);
       }
@@ -162,7 +165,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [user, firestore, auth, router]);
 
-  const value = { user, loading, login, signup, logout, updateUsername, deleteAccount };
+  const sendPasswordReset = useCallback(async (email: string) => {
+    try {
+      await sendPasswordResetEmail(auth, email);
+    } catch(error) {
+      console.error("Password reset failed:", error);
+      // You could add a toast notification here to inform the user of the error
+      throw error;
+    }
+  }, [auth]);
+
+  const value = { user, loading, login, signup, logout, updateUsername, deleteAccount, sendPasswordReset };
 
   return (
     <AuthContext.Provider value={value}>

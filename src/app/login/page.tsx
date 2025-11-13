@@ -54,6 +54,11 @@ export default function LoginPage() {
             <div className="grid gap-2">
               <Label htmlFor="password">Password</Label>
               <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+              <div className="text-right text-sm">
+                <Link href="/forgot-password" passHref className="text-muted-foreground hover:text-primary underline">
+                  Forgot password?
+                </Link>
+              </div>
             </div>
           </CardContent>
           <CardFooter className="flex flex-col items-stretch">
