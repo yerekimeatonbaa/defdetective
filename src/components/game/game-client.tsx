@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useCallback, useMemo, useTransition } from "react";
@@ -10,13 +9,12 @@ import { Lightbulb, RotateCw, XCircle, Award, PartyPopper, Clapperboard, Share }
 import { useToast } from "@/hooks/use-toast";
 import { useHintAction } from "@/lib/actions";
 import { getSmartHint } from "@/ai/flows/smart-word-hints";
-import { getGameSound } from "@/ai/flows/game-sounds-flow";
+import { useGameSounds } from "@/hooks/use-game-sounds";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/use-auth.tsx";
 import { useFirestore, useDoc, useMemoFirebase } from "@/firebase";
 import { doc, updateDoc, increment, getDoc, serverTimestamp } from "firebase/firestore";
-import { useSound } from "@/hooks/use-sound";
 import { errorEmitter } from "@/firebase/error-emitter";
 import { FirestorePermissionError } from "@/firebase/errors";
 import type { UserProfile } from "@/lib/firebase-types";
@@ -35,10 +33,6 @@ type GameState = "playing" | "won" | "lost";
 type Difficulty = "easy" | "medium" | "hard";
 const MAX_INCORRECT_TRIES = 6;
 
-type SoundMap = {
-  [key: string]: string | null;
-}
-
 export default function GameClient() {
   const { user } = useAuth();
   const firestore = useFirestore();
@@ -54,8 +48,7 @@ export default function GameClient() {
   const [isWatchingAd, setIsWatchingAd] = useState(false);
   const [adProgress, setAdProgress] = useState(0);
 
-  const [sounds, setSounds] = useState<SoundMap>({});
-  const { playSound } = useSound();
+  const { playSound } = useGameSounds();
 
   const userProfileRef = useMemoFirebase(() => 
     user ? doc(firestore, "userProfiles", user.uid) : null
@@ -68,22 +61,6 @@ export default function GameClient() {
       setLevel(userProfile.highestLevel);
     }
   }, [userProfile]);
-
-  useEffect(() => {
-    const fetchSounds = async () => {
-      const soundKeys = ['correct', 'incorrect', 'win'];
-      const soundPromises = soundKeys.map(key => getGameSound(key));
-      const results = await Promise.all(soundPromises);
-      const newSounds: SoundMap = {};
-      results.forEach((result, index) => {
-        if (result.soundDataUri) {
-          newSounds[soundKeys[index]] = result.soundDataUri;
-        }
-      });
-      setSounds(newSounds);
-    };
-    fetchSounds();
-  }, []);
 
   const { toast } = useToast();
 
@@ -120,12 +97,12 @@ export default function GameClient() {
     const lowerLetter = letter.toLowerCase();
     if (wordData?.word.toLowerCase().includes(lowerLetter)) {
       setGuessedLetters(prev => ({ ...prev, correct: [...prev.correct, lowerLetter] }));
-      if (sounds.correct) playSound(sounds.correct);
+      playSound('correct', 'medium');
     } else {
       setGuessedLetters(prev => ({ ...prev, incorrect: [...prev.incorrect, lowerLetter] }));
-      if (sounds.incorrect) playSound(sounds.incorrect);
+      playSound('incorrect', 'medium');
     }
-  }, [wordData, gameState, guessedLetters, sounds, playSound, revealedByHint]);
+  }, [wordData, gameState, guessedLetters, playSound, revealedByHint]);
 
   const getHint = async (isFree: boolean = false) => {
     if (!wordData || !userProfileRef || !user) return;
@@ -155,6 +132,7 @@ export default function GameClient() {
           setHint(result.hint);
           const newHintedLetters = result.hint.split('').filter(char => char !== '_').map(char => char.toLowerCase());
           setRevealedByHint(newHintedLetters);
+          playSound('hint', 'medium');
         } else {
            throw new Error("Invalid hint response from AI.");
         }
@@ -237,7 +215,7 @@ export default function GameClient() {
     
     if (isWon) {
       setGameState("won");
-      if (sounds.win) playSound(sounds.win);
+      playSound('win', 'high');
       
       const difficulty = getDifficultyForLevel(level);
       const scoreGained = (difficulty === 'easy' ? 10 : difficulty === 'medium' ? 20 : 30);
@@ -254,7 +232,7 @@ export default function GameClient() {
     } else if (guessedLetters.incorrect.length >= MAX_INCORRECT_TRIES) {
       setGameState("lost");
     }
-  }, [guessedLetters, wordData, level, sounds, playSound, startNewGame, updateFirestoreUser, gameState, displayedWord, hint, revealedByHint]);
+  }, [guessedLetters, wordData, level, playSound, startNewGame, updateFirestoreUser, gameState, displayedWord, hint, revealedByHint]);
 
   const incorrectTriesLeft = MAX_INCORRECT_TRIES - guessedLetters.incorrect.length;
   const allLettersGuessed = wordData && (wordData.word.length === (guessedLetters.correct.length + revealedByHint.length));
@@ -359,3 +337,5 @@ export default function GameClient() {
     </div>
   );
 }
+
+    

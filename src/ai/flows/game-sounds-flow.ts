@@ -1,35 +1,11 @@
-
 'use server';
 /**
- * @fileOverview Generates game sound effects using Text-to-Speech.
- *
- * - getGameSound - A function that generates a sound effect.
- * - GameSoundInput - The input type for the getGameSound function.
- * - GameSoundOutput - The return type for the getGameSound function.
+ * @fileOverview A Genkit flow for generating game sound effects.
  */
-
-import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
-import {googleAI} from '@genkit-ai/google-genai';
+import { ai } from '@/ai/genkit';
+import { googleAI } from '@genkit-ai/google-genai';
+import { z } from 'genkit';
 import wav from 'wav';
-
-const GameSoundInputSchema = z
-  .string()
-  .describe(
-    'The text to convert to a sound effect (e.g., "ding", "buzz", "level up").'
-  );
-export type GameSoundInput = z.infer<typeof GameSoundInputSchema>;
-
-const GameSoundOutputSchema = z.object({
-  soundDataUri: z.string().describe('The generated sound as a base64 data URI.'),
-});
-export type GameSoundOutput = z.infer<typeof GameSoundOutputSchema>;
-
-export async function getGameSound(
-  input: GameSoundInput
-): Promise<GameSoundOutput> {
-  return gameSoundFlow(input);
-}
 
 async function toWav(
   pcmData: Buffer,
@@ -44,7 +20,7 @@ async function toWav(
       bitDepth: sampleWidth * 8,
     });
 
-    let bufs = [] as any[];
+    const bufs: any[] = [];
     writer.on('error', reject);
     writer.on('data', function (d) {
       bufs.push(d);
@@ -58,11 +34,17 @@ async function toWav(
   });
 }
 
-const gameSoundFlow = ai.defineFlow(
+// Types for sound configuration
+const GameSoundInputSchema = z.object({
+  soundType: z.enum(['correct', 'incorrect', 'win', 'hint', 'click']),
+});
+export type GameSoundInput = z.infer<typeof GameSoundInputSchema>;
+
+export const gameSoundsFlow = ai.defineFlow(
   {
-    name: 'gameSoundFlow',
-    inputSchema: GameSoundInputSchema,
-    outputSchema: GameSoundOutputSchema,
+    name: 'gameSoundsFlow',
+    inputSchema: z.string(),
+    outputSchema: z.any(),
   },
   async query => {
     const { media } = await ai.generate({
@@ -75,17 +57,18 @@ const gameSoundFlow = ai.defineFlow(
         },
       },
     });
+
     if (!media) {
       throw new Error('no media returned');
     }
-    
     const audioBuffer = Buffer.from(
       media.url.substring(media.url.indexOf(',') + 1),
       'base64'
     );
-
     return {
-      soundDataUri: 'data:audio/wav;base64,' + (await toWav(audioBuffer)),
+      media: 'data:audio/wav;base64,' + (await toWav(audioBuffer)),
     };
   }
 );
+
+    
