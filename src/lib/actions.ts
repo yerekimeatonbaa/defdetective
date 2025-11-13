@@ -3,8 +3,8 @@
 
 import { getSmartHint as getSmartHintFlow, SmartHintInput } from '@/ai/flows/smart-word-hints';
 import { getGameSound as getGameSoundFlow, GameSoundInput } from '@/ai/flows/game-sounds-flow';
-import { useHint as useHintFlow, UseHintInput } from '@/ai/flows/use-hint-flow';
-import { auth } from 'firebase-admin';
+import { initFirestore } from '@/lib/firebase-admin';
+import { getFirestore } from 'firebase-admin/firestore';
 
 export async function getHintAction(data: {
   word: string;
@@ -44,9 +44,29 @@ export async function getSoundAction(sound: string) {
 
 export async function useHintAction(data: { userId: string }) {
   try {
-    const input: UseHintInput = { userId: data.userId };
-    const result = await useHintFlow(input);
-    return { success: result.success, message: result.message, error: null };
+    initFirestore();
+    const firestore = getFirestore();
+    const userProfileRef = firestore.collection('userProfiles').doc(data.userId);
+    
+    const result = await firestore.runTransaction(async (transaction) => {
+      const userDoc = await transaction.get(userProfileRef);
+
+      if (!userDoc.exists) {
+        return { success: false, message: 'User profile not found.' };
+      }
+
+      const currentHints = userDoc.data()?.hints ?? 0;
+
+      if (currentHints <= 0) {
+        return { success: false, message: "You don't have any hints left." };
+      }
+
+      transaction.update(userProfileRef, { hints: currentHints - 1 });
+      return { success: true, message: 'Hint used successfully.' };
+    });
+
+    return { ...result, error: null };
+
   } catch (error: any) {
     console.error('Error using hint:', error);
     return { success: false, message: error.message || 'Failed to use a hint.', error: 'Failed to use a hint. Please try again.' };

@@ -18,6 +18,11 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
+    // ✅ ALLOW GAME TO READ HINTS
+    match /hints/{hintId} {
+      allow read: if true;
+    }
+
     // User Profiles
     match /userProfiles/{userId} {
       // Anyone can read a user profile (for leaderboards)
