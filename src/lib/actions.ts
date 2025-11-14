@@ -1,7 +1,7 @@
 
 'use server';
 
-import { getApps, initializeApp, App } from 'firebase-admin/app';
+import { initializeApp, getApps, App } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
 import { genkit } from 'genkit';
 import { googleAI } from '@genkit-ai/google-genai';
@@ -67,7 +67,7 @@ export async function useHintAction(data: {
 
     // If the transaction was successful, proceed to generate the AI hint.
     const hintResponse = await ai.generate({
-        model: 'gemini-1.5-flash',
+        model: googleAI.model('gemini-1.5-flash'),
         prompt: `
             You are an AI assistant for a word puzzle game. Your task is to provide a "smart hint".
             The user gives you a secret word, a string of letters they have already guessed incorrectly, and a number of letters to reveal.
