@@ -1,6 +1,6 @@
+
 import { genkit } from 'genkit';
 import { NextRequest, NextResponse } from 'next/server';
-import '@/ai/prompts';
 
 export async function POST(request: NextRequest) {
   try {
