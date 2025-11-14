@@ -27,6 +27,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Progress } from "@/components/ui/progress";
 import ShareButton from "./share-button";
+import { getSmartHint } from "@/lib/api/hints";
 
 
 type GameState = "playing" | "won" | "lost";
@@ -87,7 +88,7 @@ export default function GameClient() {
 
   useEffect(() => {
     // This ensures getWordByDifficulty (with Math.random) only runs on the client.
-    startNewGame(1);
+    startNewGame(level);
   }, []);
   
   useEffect(() => {
@@ -113,51 +114,49 @@ export default function GameClient() {
   }, [wordData, gameState, guessedLetters, playSound, revealedByHint]);
 
   const getHint = async (isFree: boolean = false) => {
-    if (!wordData || (!user && !isFree)) return;
-    
+    if (!wordData) return;
+  
     startHintTransition(async () => {
-      const lettersToRevealCount = revealedByHint.length + 1;
-      
       try {
-        let result;
-        if (isFree) {
-          // If the hint is free, we don't need to call the transaction part of the action.
-          // For simplicity, we'll just generate the hint directly.
-          // Note: a more robust solution might have a separate action for free hints.
-          const { smartHintPrompt } = await import('@/ai/prompts');
-          const { output } = await smartHintPrompt({
-            word: wordData.word,
-            incorrectGuesses: guessedLetters.incorrect.join(''),
-            lettersToReveal: lettersToRevealCount,
-          });
-          result = { success: true, hint: output?.hint };
-
-        } else if(user) {
-           result = await useHintAction({
-            userId: user.uid,
-            word: wordData.word,
-            incorrectGuesses: guessedLetters.incorrect.join(''),
-            lettersToReveal: lettersToRevealCount,
-          });
-        } else {
-            throw new Error("User not logged in for paid hint.");
+        if (!isFree) {
+          if (!user) {
+            toast({
+              variant: "destructive",
+              title: "Login Required",
+              description: "You must be logged in to use a hint.",
+            });
+            return;
+          }
+          // Step 1: Securely "purchase" the hint via server action
+          const purchaseResult = await useHintAction({ userId: user.uid });
+          if (!purchaseResult.success) {
+            throw new Error(purchaseResult.message || "Failed to use hint.");
+          }
         }
-
-
-        if (result && result.success && result.hint) {
-          setHint(result.hint);
-          const newHintedLetters = result.hint.split('').filter(char => char !== '_').map(char => char.toLowerCase());
+  
+        // Step 2: If purchase was successful (or free), generate the hint
+        const lettersToRevealCount = revealedByHint.length + 1;
+        const hintResult = await getSmartHint({
+          word: wordData.word,
+          incorrectGuesses: guessedLetters.incorrect.join(''),
+          lettersToReveal: lettersToRevealCount,
+        });
+  
+        if (hintResult.hint) {
+          setHint(hintResult.hint);
+          const newHintedLetters = hintResult.hint.split('').filter(char => char !== '_').map(char => char.toLowerCase());
           setRevealedByHint(newHintedLetters);
           playSound('hint');
         } else {
-           throw new Error(result.message || "Invalid hint response from server.");
+          throw new Error("AI did not return a valid hint.");
         }
+  
       } catch (error: any) {
-         toast({
-            variant: "destructive",
-            title: "Hint Error",
-            description: error.message || 'Failed to get a hint. Please try again.',
-          });
+        toast({
+          variant: "destructive",
+          title: "Hint Error",
+          description: error.message || 'An unexpected error occurred.',
+        });
       }
     });
   };
@@ -258,7 +257,7 @@ export default function GameClient() {
   
   const incorrectTriesLeft = MAX_INCORRECT_TRIES - guessedLetters.incorrect.length;
   const allLettersGuessed = wordData && displayedWord.every(item => item.revealed);
-  const hintDisabled = isHintLoading || allLettersGuessed || !user || profileLoading;
+  const hintDisabled = isHintLoading || allLettersGuessed || (!user && !isWatchingAd) || profileLoading;
 
   const shareText = "I'm playing Definition Detective! Can you beat my high score?";
 
@@ -320,7 +319,7 @@ export default function GameClient() {
               <Lightbulb className={cn("mr-2 h-4 w-4", isHintLoading && !isWatchingAd && "animate-spin")} />
               {isHintLoading && !isWatchingAd ? 'Getting Hint...' : 'Use a Hint'}
             </Button>
-             <Button onClick={handleRewardedAd} disabled={isHintLoading || allLettersGuessed || !user} variant="outline">
+             <Button onClick={handleRewardedAd} disabled={isHintLoading || allLettersGuessed} variant="outline">
               <Clapperboard className={cn("mr-2 h-4 w-4", isWatchingAd && "animate-spin")} />
               {isWatchingAd ? 'Loading Ad...' : 'Watch Ad for Hint'}
             </Button>
