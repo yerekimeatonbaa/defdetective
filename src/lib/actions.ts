@@ -94,10 +94,8 @@ export async function useHintAction(data: {
 
             Produce the JSON response now.
         `,
-        config: {
-            generation_config: {
-                response_mime_type: 'application/json',
-            },
+        generationConfig: {
+            responseMimeType: 'application/json',
         },
     });
     
