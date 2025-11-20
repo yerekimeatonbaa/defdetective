@@ -312,7 +312,57 @@ export default function Home() {
             {gameState === 'won' ? <PartyPopper className="h-4 w-4" /> : <XCircle className="h-4 w-4" />}
             <AlertTitle className="text-2xl font-bold">
                 {gameState === 'won' ? "You solved it!" : "Case closed... incorrectly."}
-            </Alergument and guess the word. Put your vocabulary to the test!
+            </AlertTitle>
+            <AlertDescription>
+                {gameState === 'won' ? `The word was "${wordData?.word}". Loading next case...` : `The word was "${wordData?.word}". Better luck next time.`}
+            </AlertDescription>
+
+            {gameState === 'lost' && (
+                <div className="mt-4 flex justify-center gap-4">
+                    <Button onClick={() => startNewGame(level, wordData?.word)}>
+                        <RotateCw className="mr-2 h-4 w-4" /> Retry Level
+                    </Button>
+                </div>
+            )}
+            </Alert>
+        ) : (
+            <>
+            <div className="flex justify-center gap-4">
+                <Button onClick={() => getHint(false)} disabled={hintDisabled}>
+                <Lightbulb className={cn("mr-2 h-4 w-4", isHintLoading && !isWatchingAd && "animate-spin")} />
+                {isHintLoading && !isWatchingAd ? 'Getting Hint...' : 'Use a Hint'}
+                </Button>
+                <Button onClick={handleRewardedAd} disabled={isHintLoading || allLettersGuessed} variant="outline">
+                <Clapperboard className={cn("mr-2 h-4 w-4", isWatchingAd && "animate-spin")} />
+                {isWatchingAd ? 'Loading Ad...' : 'Watch Ad for Hint'}
+                </Button>
+            </div>
+            {!user && <p className="text-center text-sm text-muted-foreground">Please log in to use hints and save progress.</p>}
+            <p className="text-center text-muted-foreground">Incorrect Guesses: {guessedLetters.incorrect.join(', ').toUpperCase()} ({incorrectTriesLeft} left)</p>
+            <Keyboard onKeyClick={handleGuess} guessedLetters={guessedLetters} revealedByHint={revealedByHint} />
+            </>
+        )}
+
+        <div className="mt-12 pt-8 border-t border-dashed">
+            <p className="text-sm font-medium flex items-center justify-center gap-2 mb-4 text-muted-foreground"><Share className="h-4 w-4" /> Share The Game!</p>
+            <div className="flex justify-center gap-2">
+            <ShareButton platform="whatsapp" text={shareText} />
+            <ShareButton platform="facebook" text={shareText} />
+            <ShareButton platform="x" text={shareText} />
+            </div>
+        </div>
+        </div>
+    );
+  }
+
+  return (
+    <div className="container mx-auto flex flex-col items-center justify-center gap-8 py-8 md:py-12">
+      <div className="text-center">
+        <h1 className="text-4xl font-bold tracking-tight text-primary sm:text-5xl lg:text-6xl font-headline">
+          Definition Detective
+        </h1>
+        <p className="mt-4 max-w-2xl text-lg text-foreground/80">
+          Unscramble the definition and guess the word. Put your vocabulary to the test!
         </p>
       </div>
       {gameContent()}
@@ -337,3 +387,4 @@ export default function Home() {
   );
 }
 
+    
