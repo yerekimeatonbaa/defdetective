@@ -1,7 +1,7 @@
 'use server';
 
 import { ai } from '@/ai/genkit';
-import { googleAI } from '@genkit-ai/google-genai';
+import { geminiPro } from '@genkit-ai/google-genai';
 import {
   GenerateWordInput,
   GenerateWordOutput,
@@ -19,7 +19,7 @@ const prompt = ai.definePrompt({
   name: 'generateWordPrompt',
   input: { schema: GenerateWordInputSchema },
   output: { schema: GenerateWordOutputSchema },
-  model: googleAI.model('gemini-1.5-pro'),
+  model: geminiPro,
   generationConfig: {
     responseMimeType: 'application/json',
   },
