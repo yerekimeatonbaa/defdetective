@@ -1,16 +1,12 @@
-
 'use server';
 /**
  * @fileOverview A flow to generate a smart hint for the word puzzle game.
- *
- * - generateHint - A function that generates a hint.
- * - GenerateHintInput - The input type for the generateHint function.
- * - GenerateHintOutput - The return type for the generateHint function.
  */
 
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
-import { googleAI } from '@genkit-ai/googleai';
+// 1. Update Import: Import the specific model object (gemini15Pro)
+import { gemini15Pro } from '@genkit-ai/googleai';
 
 export const GenerateHintInputSchema = z.object({
   word: z.string().describe('The secret word for the puzzle.'),
@@ -24,6 +20,8 @@ export const GenerateHintOutputSchema = z.object({
 });
 export type GenerateHintOutput = z.infer<typeof GenerateHintOutputSchema>;
 
+// 2. Move this to the bottom or keep here, but ensure the flow is defined before calling it 
+// (Function hoisting usually handles this, but defining the flow first is safer in some contexts).
 export async function generateHint(input: GenerateHintInput): Promise<GenerateHintOutput> {
   return generateHintFlow(input);
 }
@@ -32,7 +30,11 @@ const prompt = ai.definePrompt({
   name: 'generateHintPrompt',
   input: { schema: GenerateHintInputSchema },
   output: { schema: GenerateHintOutputSchema },
-  model: googleAI.model('gemini-1.5-pro'),
+  
+  // 3. FIX: Use the imported model object directly. 
+  // Do not use `googleAI.model(...)`
+  model: gemini15Pro, 
+
   prompt: `You are an AI assistant for a word puzzle game. Your task is to provide a "smart hint".
 The user gives you a secret word, a string of letters they have already guessed incorrectly, and a number of letters to reveal.
 
@@ -54,13 +56,15 @@ Produce the JSON response now.`,
   },
 });
 
+// 4. FIX: Variable names cannot have hyphens (-).
+// Changed 'generate-hintFlow' to 'generateHintFlow'
 const generateHintFlow = ai.defineFlow(
   {
     name: 'generateHintFlow',
     inputSchema: GenerateHintInputSchema,
     outputSchema: GenerateHintOutputSchema,
   },
-  async input => {
+  async (input) => {
     const { output } = await prompt(input);
     if (!output) {
       throw new Error('Failed to generate hint from AI.');

@@ -1,16 +1,12 @@
-
 'use server';
 /**
  * @fileOverview A flow to generate a word and its definition for the game.
- *
- * - generateWord - A function that generates a new word puzzle.
- * - GenerateWordInput - The input type for the generateWord function.
- * - GenerateWordOutput - The return type for the generateWord function.
  */
 
-import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
-import {googleAI} from '@genkit-ai/googleai';
+import { ai } from '@/ai/genkit';
+import { z } from 'genkit';
+// 1. IMPORT THE MODEL OBJECT
+import { gemini15Pro } from '@genkit-ai/googleai';
 
 const GenerateWordInputSchema = z.object({
   difficulty: z
@@ -33,9 +29,12 @@ export async function generateWord(
 
 const prompt = ai.definePrompt({
   name: 'generateWordPrompt',
-  input: {schema: GenerateWordInputSchema},
-  output: {schema: GenerateWordOutputSchema},
-  model: googleAI.model('gemini-1.5-pro'),
+  input: { schema: GenerateWordInputSchema },
+  output: { schema: GenerateWordOutputSchema },
+  
+  // 2. USE THE OBJECT DIRECTLY
+  model: gemini15Pro,
+  
   generationConfig: {
     responseMimeType: 'application/json',
   },
@@ -56,8 +55,8 @@ const generateWordFlow = ai.defineFlow(
     inputSchema: GenerateWordInputSchema,
     outputSchema: GenerateWordOutputSchema,
   },
-  async input => {
-    const {output} = await prompt(input);
+  async (input) => {
+    const { output } = await prompt(input);
     if (!output) {
       throw new Error('Failed to generate word from AI.');
     }
