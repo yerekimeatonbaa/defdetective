@@ -1,12 +1,17 @@
+
 'use server';
 /**
  * @fileOverview Generates game sound effects using Text-to-Speech.
+ *
+ * - getGameSound - A function that generates a sound effect.
+ * - GameSoundInput - The input type for the getGameSound function.
+ * - GameSoundOutput - The return type for the getGameSound function.
  */
 
-import { ai } from '@/ai/genkit';
-import { z } from 'genkit';
+import {ai} from '@/ai/genkit';
+import {z} from 'zod';
 import wav from 'wav';
-// googleAI import is not needed if we use the string ID for the model
+import { gemini15FlashTts } from '@genkit-ai/google-genai';
 
 const GameSoundInputSchema = z
   .string()
@@ -59,34 +64,27 @@ const gameSoundFlow = ai.defineFlow(
     inputSchema: GameSoundInputSchema,
     outputSchema: GameSoundOutputSchema,
   },
-  async (query) => {
-    const { media } = await ai.generate({
-      // FIX: Use the full string identifier for preview models
-      // Note: Ensure your API key has access to this specific preview model
-      model: 'googleai/gemini-2.5-flash-preview-tts',
-      
+  async query => {
+    const {media} = await ai.generate({
+      model: gemini15FlashTts,
       config: {
         responseModalities: ['AUDIO'],
         speechConfig: {
           voiceConfig: {
-            prebuiltVoiceConfig: { voiceName: 'Algenib' },
+            prebuiltVoiceConfig: {voiceName: 'Algenib'},
           },
         },
       },
       prompt: query,
     });
-    
     if (!media) {
       throw new Error('no media returned');
     }
-    
     const audioBuffer = Buffer.from(
       media.url.substring(media.url.indexOf(',') + 1),
       'base64'
     );
-    
     const wavBase64 = await toWav(audioBuffer);
-    
     return {
       soundDataUri: 'data:audio/wav;base64,' + wavBase64,
     };
