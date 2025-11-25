@@ -2,7 +2,7 @@
 'use server';
 
 import { ai } from '@/ai/genkit';
-import { geminiPro } from '@genkit-ai/google-genai';
+import { gemini15Flash } from '@genkit-ai/google-genai';
 import {
   GenerateWordInput,
   GenerateWordOutput,
@@ -20,7 +20,7 @@ const prompt = ai.definePrompt({
   name: 'generateWordPrompt',
   input: { schema: GenerateWordInputSchema },
   output: { schema: GenerateWordOutputSchema },
-  model: geminiPro,
+  model: gemini15Flash,
   generationConfig: {
     responseMimeType: 'application/json',
   },

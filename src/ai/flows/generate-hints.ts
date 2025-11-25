@@ -2,7 +2,7 @@
 'use server';
 
 import { ai } from '@/ai/genkit';
-import { geminiPro } from '@genkit-ai/google-genai';
+import { googleAI } from '@genkit-ai/google-genai';
 import {
   GenerateHintInput,
   GenerateHintOutput,
@@ -18,35 +18,16 @@ const prompt = ai.definePrompt({
   name: 'generateHintPrompt',
   input: { schema: GenerateHintInputSchema },
   output: { schema: GenerateHintOutputSchema },
-  model: geminiPro,
+  model: googleAI.model('gemini-1.5-pro-002'),
   prompt: `You are an AI assistant for a word puzzle game. Your task is to provide a "smart hint".
 The user gives you a secret word, a string of letters they have already guessed incorrectly, and a number of letters to reveal.
 
-<<<<<<< HEAD
-Rules:
-1. Your response MUST adhere to the provided JSON schema.
-2. The value of "hint" should be a string representing the secret word.
-3. In this string, exactly {{lettersToReveal}} letters of the secret word should be revealed.
-4. All other letters MUST be represented by an underscore "_".
-5. You MUST NOT reveal any letters that the user has already guessed incorrectly ("{{incorrectGuesses}}"). Choose other letters to reveal.
-
-Here is the data for this request:
-- Secret Word: "{{word}}"
-- Incorrect Guesses: "{{incorrectGuesses}}"
-- Letters to Reveal: {{lettersToReveal}}
-
-Produce the JSON response now.`,
-  generationConfig: {
-    responseMimeType: 'application/json',
-  },
-=======
   // ✅ Updated model
-  model: googleAI.model('gemini-1.5-flash'),
+  model: googleAI.model('gemini-1.5-pro-002'),
 
-  prompt: `You are an AI assistant for a word puzzle game...
+  prompt: 'You are an AI assistant for a word puzzle game...'
 (unchanged prompt text)
 `,
->>>>>>> e182bddde71e154e477ff491b4ad0a30f2238d83
 });
 
 const generateHintFlow = ai.defineFlow(

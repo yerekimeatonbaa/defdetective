@@ -2,7 +2,7 @@
 'use server';
 
 import { ai } from '@/ai/genkit';
-import { geminiPro } from '@genkit-ai/google-genai';
+import { gemini15Flash } from '@genkit-ai/google-genai';
 import {
   GenerateHintInput,
   GenerateHintOutput,
@@ -18,7 +18,7 @@ const prompt = ai.definePrompt({
   name: 'generateHintPrompt',
   input: { schema: GenerateHintInputSchema },
   output: { schema: GenerateHintOutputSchema },
-  model: geminiPro,
+  model: gemini15Flash,
   prompt: `You are an AI assistant for a word puzzle game. Your task is to provide a "smart hint".
 The user gives you a secret word, a string of letters they have already guessed incorrectly, and a number of letters to reveal.
 

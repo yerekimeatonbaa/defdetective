@@ -1,42 +1,23 @@
-
-'use server';
-/**
- * @fileOverview Generates game sound effects using Text-to-Speech.
- *
- * - getGameSound - A function that generates a sound effect.
- * - GameSoundInput - The input type for the getGameSound function.
- * - GameSoundOutput - The return type for the getGameSound function.
- */
-
-import {ai} from '@/ai/genkit';
-import {z} from 'zod';
+import { ai } from '@/ai/genkit';
+import { z } from 'zod';
 import wav from 'wav';
-import { gemini15FlashTts } from '@genkit-ai/google-genai';
+import { googleAI } from '@genkit-ai/google-genai';  // ✅ CORRECT import
 
 const GameSoundInputSchema = z
   .string()
-  .describe(
-    'The text to convert to a sound effect (e.g., "ding", "buzz", "level up").'
-  );
+  .describe('The text to convert into a sound effect');
 export type GameSoundInput = z.infer<typeof GameSoundInputSchema>;
 
 const GameSoundOutputSchema = z.object({
-  soundDataUri: z.string().describe('The generated sound as a base64 data URI.'),
+  soundDataUri: z.string(),
 });
 export type GameSoundOutput = z.infer<typeof GameSoundOutputSchema>;
 
-export async function getGameSound(
-  input: GameSoundInput
-): Promise<GameSoundOutput> {
+export async function getGameSound(input: GameSoundInput) {
   return gameSoundFlow(input);
 }
 
-async function toWav(
-  pcmData: Buffer,
-  channels = 1,
-  rate = 24000,
-  sampleWidth = 2
-): Promise<string> {
+async function toWav(pcmData: Buffer, channels = 1, rate = 24000, sampleWidth = 2) {
   return new Promise((resolve, reject) => {
     const writer = new wav.Writer({
       channels,
@@ -44,14 +25,12 @@ async function toWav(
       bitDepth: sampleWidth * 8,
     });
 
-    const bufs: Buffer[] = [];
+    const buffers: Buffer[] = [];
     writer.on('error', reject);
-    writer.on('data', function (d) {
-      bufs.push(d);
-    });
-    writer.on('end', function () {
-      resolve(Buffer.concat(bufs).toString('base64'));
-    });
+    writer.on('data', d => buffers.push(d));
+    writer.on('end', () =>
+      resolve(Buffer.concat(buffers).toString('base64'))
+    );
 
     writer.write(pcmData);
     writer.end();
@@ -66,27 +45,32 @@ const gameSoundFlow = ai.defineFlow(
   },
   async query => {
     const { media } = await ai.generate({
-      model: googleAI.model('gemini-1.5-flash-tts'), // ✅ Updated TTS model
+      // ✅ Correct TTS model name for YOUR plugin version
+      model: googleAI.model('googleai/gemini-2.0-flash-tts'),
+
       config: {
         responseModalities: ['AUDIO'],
         speechConfig: {
           voiceConfig: {
-            prebuiltVoiceConfig: {voiceName: 'Algenib'},
+            prebuiltVoiceConfig: { voiceName: 'Algenib' },
           },
         },
       },
+
       prompt: query,
     });
-    if (!media) {
-      throw new Error('no media returned');
-    }
+
+    if (!media) throw new Error('No audio returned');
+
     const audioBuffer = Buffer.from(
       media.url.substring(media.url.indexOf(',') + 1),
       'base64'
     );
+
     const wavBase64 = await toWav(audioBuffer);
+
     return {
-      soundDataUri: 'data:audio/wav;base64,' + wavBase64,
+      soundDataUri: `data:audio/wav;base64,${wavBase64}`,
     };
   }
 );
