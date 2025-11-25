@@ -7,7 +7,7 @@ import { useFirestore, useDoc, useMemoFirebase } from "@/firebase";
 import { doc, updateDoc, arrayUnion, increment } from "firebase/firestore";
 import type { UserProfile } from "@/lib/firebase-types";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardFooter, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Paintbrush, Lightbulb, CheckCircle, Palette } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
@@ -65,7 +65,7 @@ export default function StorePage() {
         // Purchase and apply the theme
         updateDoc(userProfileRef, {
             purchasedThemes: arrayUnion(themeId)
-        }).catch((serverError) => {
+        }).catch(() => {
             const permissionError = new FirestorePermissionError({
                 path: userProfileRef.path,
                 operation: 'update',
@@ -84,7 +84,7 @@ export default function StorePage() {
 
     const updateData = { hints: increment(amount) };
     updateDoc(userProfileRef, updateData)
-        .catch((serverError) => {
+      .catch(() => {
             const permissionError = new FirestorePermissionError({
                 path: userProfileRef.path,
                 operation: 'update',

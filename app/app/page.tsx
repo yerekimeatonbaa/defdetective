@@ -4,7 +4,8 @@
 import { useState, useEffect, useCallback, useMemo, useTransition } from "react";
 import { type WordData, getRankForScore } from "@/lib/game-data";
 import { generateWord } from "@/ai/flows/generate-word-flow";
-import { generateHint } from "@/ai/flows/generate-hints";
+// generateHint intentionally not used in this entry; keep import commented or remove to avoid lint warnings
+// import { generateHint } from "@/ai/flows/generate-hints";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Keyboard } from "@/components/game/keyboard";
@@ -223,7 +224,7 @@ export default function Home() {
         };
 
         updateDoc(userRef, updateData)
-            .catch((serverError) => {
+          .catch(() => {
                 const permissionError = new FirestorePermissionError({
                     path: userRef.path,
                     operation: 'update',

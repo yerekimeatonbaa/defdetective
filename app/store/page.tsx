@@ -65,7 +65,7 @@ export default function StorePage() {
         // Purchase and apply the theme
         updateDoc(userProfileRef, {
             purchasedThemes: arrayUnion(themeId)
-        }).catch((serverError) => {
+        }).catch(() => {
             const permissionError = new FirestorePermissionError({
                 path: userProfileRef.path,
                 operation: 'update',
@@ -84,7 +84,7 @@ export default function StorePage() {
 
     const updateData = { hints: increment(amount) };
     updateDoc(userProfileRef, updateData)
-        .catch((serverError) => {
+      .catch(() => {
             const permissionError = new FirestorePermissionError({
                 path: userProfileRef.path,
                 operation: 'update',

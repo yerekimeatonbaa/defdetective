@@ -22,6 +22,7 @@ const prompt = ai.definePrompt({
   prompt: `You are an AI assistant for a word puzzle game. Your task is to provide a "smart hint".
 The user gives you a secret word, a string of letters they have already guessed incorrectly, and a number of letters to reveal.
 
+<<<<<<< HEAD
 Rules:
 1. Your response MUST adhere to the provided JSON schema.
 2. The value of "hint" should be a string representing the secret word.
@@ -38,6 +39,14 @@ Produce the JSON response now.`,
   generationConfig: {
     responseMimeType: 'application/json',
   },
+=======
+  // ✅ Updated model
+  model: googleAI.model('gemini-1.5-flash'),
+
+  prompt: `You are an AI assistant for a word puzzle game...
+(unchanged prompt text)
+`,
+>>>>>>> e182bddde71e154e477ff491b4ad0a30f2238d83
 });
 
 const generateHintFlow = ai.defineFlow(

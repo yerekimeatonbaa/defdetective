@@ -91,7 +91,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         };
 
         setDoc(userRef, userData)
-          .catch((serverError) => {
+          .catch(() => {
             const permissionError = new FirestorePermissionError({
               path: userRef.path,
               operation: 'create',
@@ -124,14 +124,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const updateData = { username: newName };
         
         updateDoc(userRef, updateData)
-            .catch((serverError) => {
-                const permissionError = new FirestorePermissionError({
-                    path: userRef.path,
-                    operation: 'update',
-                    requestResourceData: updateData,
-                });
-                errorEmitter.emit('permission-error', permissionError);
+          .catch(() => {
+            const permissionError = new FirestorePermissionError({
+              path: userRef.path,
+              operation: 'update',
+              requestResourceData: updateData,
             });
+            errorEmitter.emit('permission-error', permissionError);
+          });
 
         // This part is important to see the change reflected in the UI immediately
         setUser(auth.currentUser);
@@ -147,12 +147,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
         const userRef = doc(firestore, 'userProfiles', user.uid);
         
-        deleteDoc(userRef).catch(err => {
+        deleteDoc(userRef).catch(() => {
              const permissionError = new FirestorePermissionError({
-                    path: userRef.path,
-                    operation: 'delete',
-                });
-                errorEmitter.emit('permission-error', permissionError);
+              path: userRef.path,
+              operation: 'delete',
+          });
+          errorEmitter.emit('permission-error', permissionError);
         });
 
         await deleteUser(user);

@@ -1,26 +1,13 @@
 import { z } from 'zod';
 
-<<<<<<< HEAD
 export const GenerateHintInputSchema = z.object({
-=======
-const GenerateHintInputSchema = z.object({
->>>>>>> e182bddde71e154e477ff491b4ad0a30f2238d83
   word: z.string().describe('The secret word for the puzzle.'),
   incorrectGuesses: z.string().describe('A string of letters the user has already guessed incorrectly.'),
   lettersToReveal: z.number().describe('The number of letters to reveal in the hint.'),
 });
 export type GenerateHintInput = z.infer<typeof GenerateHintInputSchema>;
 
-<<<<<<< HEAD
 export const GenerateHintOutputSchema = z.object({
   hint: z.string().describe('The partially revealed word, using underscores for unrevealed letters.'),
 });
 export type GenerateHintOutput = z.infer<typeof GenerateHintOutputSchema>;
-=======
-const GenerateHintOutputSchema = z.object({
-  hint: z.string().describe('The partially revealed word, using underscores for unrevealed letters.'),
-});
-export type GenerateHintOutput = z.infer<typeof GenerateHintOutputSchema>;
-
-export { GenerateHintInputSchema, GenerateHintOutputSchema };
->>>>>>> e182bddde71e154e477ff491b4ad0a30f2238d83

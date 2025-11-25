@@ -1,0 +1,6 @@
+{
+  "appId": "com.example.definitiondetective",
+  "appName": "Definition Detective",
+  "webDir": "out",
+  "bundledWebRuntime": false
+}

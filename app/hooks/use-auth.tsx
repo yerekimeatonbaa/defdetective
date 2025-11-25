@@ -91,14 +91,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         };
 
         setDoc(userRef, userData)
-          .catch((serverError) => {
+            .catch(() => {
             const permissionError = new FirestorePermissionError({
               path: userRef.path,
               operation: 'create',
               requestResourceData: userData,
             });
             errorEmitter.emit('permission-error', permissionError);
-          });
+            });
         
         router.push('/');
       } catch (error) {
