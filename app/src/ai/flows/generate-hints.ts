@@ -2,7 +2,7 @@
 'use server';
 
 import { ai } from '@/ai/genkit';
-import { gemini15Flash } from '@genkit-ai/google-genai';
+import { googleAI } from '@genkit-ai/google-genai';
 import {
   GenerateHintInput,
   GenerateHintOutput,
@@ -17,8 +17,8 @@ export async function generateHint(input: GenerateHintInput): Promise<GenerateHi
 const prompt = ai.definePrompt({
   name: 'generateHintPrompt',
   input: { schema: GenerateHintInputSchema },
-  output: { schema: GenerateHintOutputSchema },
-  model: gemini15Flash,
+  output: { schema: GenerateHintOutputSchema, format: 'json' },
+  model: googleAI.model('gemini-1.5-pro'),
   prompt: `You are an AI assistant for a word puzzle game. Your task is to provide a "smart hint".
 The user gives you a secret word, a string of letters they have already guessed incorrectly, and a number of letters to reveal.
 
@@ -35,9 +35,6 @@ Here is the data for this request:
 - Letters to Reveal: {{lettersToReveal}}
 
 Produce the JSON response now.`,
-  generationConfig: {
-    responseMimeType: 'application/json',
-  },
 });
 
 const generateHintFlow = ai.defineFlow(

@@ -1,12 +1,14 @@
-// src/ai/genkit.ts
-import { genkit } from 'genkit';
-import { googleAI } from '@genkit-ai/googleai';
+
+import { genkit, gemini15Flash } from 'genkit';
+import { googleAI } from '@genkit-ai/google-genai';
 
 export const ai = genkit({
   plugins: [
-    googleAI(),
+    googleAI({
+      apiVersion: 'v1', // Force stable v1 API
+    }),
   ],
-
-  // ❌ Do NOT set a "default model" here.
-  // All flows should specify their own model.
+  models: [
+    gemini15Flash
+  ]
 });
