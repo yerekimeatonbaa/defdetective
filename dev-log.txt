@@ -16,3 +16,5 @@
  ⚠ Cross origin request detected from 9003-firebase-studio-1761198320704.cluster-lu4mup47g5gm4rtyvhzpwbfadi.cloudworkstations.dev to /_next/* resource. In a future major version of Next.js, you will need to explicitly configure "allowedDevOrigins" in next.config to allow this.
 Read more: https://nextjs.org/docs/app/api-reference/config/next-config-js/allowedDevOrigins
  GET / 404 in 1772ms
+ GET / 404 in 518ms
+ GET / 404 in 467ms

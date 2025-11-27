@@ -1,5 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  /* config options here */
+  srcDir: './src',
   typescript: {
     ignoreBuildErrors: true,
   },
@@ -27,15 +29,6 @@ const nextConfig = {
         pathname: '/**',
       },
     ],
-  },
-  webpack: (config, { isServer }) => {
-    // Fixes npm packages that depend on `fs` module
-    if (!isServer) {
-      config.resolve.fallback = {
-        fs: false,
-      };
-    }
-    return config;
   },
 };
 
