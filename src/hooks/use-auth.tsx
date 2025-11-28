@@ -90,15 +90,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           hints: 5,
         };
 
-        setDoc(userRef, userData)
-          .catch(() => {
-            const permissionError = new FirestorePermissionError({
-              path: userRef.path,
-              operation: 'create',
-              requestResourceData: userData,
-            });
-            errorEmitter.emit('permission-error', permissionError);
+        try {
+          await setDoc(userRef, userData);
+        } catch (error) {
+          const permissionError = new FirestorePermissionError({
+            path: userRef.path,
+            operation: 'create',
+            requestResourceData: userData,
           });
+          errorEmitter.emit('permission-error', permissionError);
+        }
         
         router.push('/');
       } catch (error) {
@@ -123,15 +124,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         
         const updateData = { username: newName };
         
-        updateDoc(userRef, updateData)
-          .catch(() => {
-            const permissionError = new FirestorePermissionError({
-              path: userRef.path,
-              operation: 'update',
-              requestResourceData: updateData,
-            });
-            errorEmitter.emit('permission-error', permissionError);
+        try {
+          await updateDoc(userRef, updateData);
+        } catch (error) {
+          const permissionError = new FirestorePermissionError({
+            path: userRef.path,
+            operation: 'update',
+            requestResourceData: updateData,
           });
+          errorEmitter.emit('permission-error', permissionError);
+        }
 
         // This part is important to see the change reflected in the UI immediately
         setUser(auth.currentUser);
@@ -147,13 +149,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
         const userRef = doc(firestore, 'userProfiles', user.uid);
         
-        deleteDoc(userRef).catch(() => {
-             const permissionError = new FirestorePermissionError({
-              path: userRef.path,
-              operation: 'delete',
+        try {
+          await deleteDoc(userRef);
+        } catch (error) {
+          const permissionError = new FirestorePermissionError({
+            path: userRef.path,
+            operation: 'delete',
           });
           errorEmitter.emit('permission-error', permissionError);
-        });
+        }
 
         await deleteUser(user);
         

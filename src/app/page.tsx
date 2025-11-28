@@ -3,7 +3,7 @@
 
 import { useState, useEffect, useCallback, useMemo, useTransition } from "react";
 import { type WordData, getRankForScore } from "@/lib/game-data";
-import { generateWord } from "@/ai/flows/generate-word-flow";
+import { generateWord } from "@/app/actions";
 import { useHintAction } from "@/lib/actions";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -221,15 +221,16 @@ export default function Home() {
             updatedAt: serverTimestamp(),
         };
 
-        updateDoc(userRef, updateData)
-          .catch(() => {
-                const permissionError = new FirestorePermissionError({
-                    path: userRef.path,
-                    operation: 'update',
-                    requestResourceData: updateData,
-                });
-                errorEmitter.emit('permission-error', permissionError);
-            });
+        try {
+          await updateDoc(userRef, updateData);
+        } catch (error) {
+          const permissionError = new FirestorePermissionError({
+            path: userRef.path,
+            operation: 'update',
+            requestResourceData: updateData,
+          });
+          errorEmitter.emit('permission-error', permissionError);
+        }
     }
   }, [user, firestore]);
 
