@@ -1,35 +1,36 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  /* config options here */
-  srcDir: './src',
-  typescript: {
-    ignoreBuildErrors: true,
-  },
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
+  reactStrictMode: true,
   images: {
     remotePatterns: [
       {
         protocol: 'https',
         hostname: 'placehold.co',
-        port: '',
-        pathname: '/**',
       },
       {
         protocol: 'https',
         hostname: 'images.unsplash.com',
-        port: '',
-        pathname: '/**',
       },
       {
         protocol: 'https',
         hostname: 'picsum.photos',
-        port: '',
-        pathname: '/**',
       },
     ],
   },
+  webpack: (config) => {
+    config.resolve.fallback = {
+      ...config.resolve.fallback,
+      // Used by Genkit
+      'uglify-js': false,
+      '@babel/core': false,
+      'node-gyp': false,
+      'node-pre-gyp': false,
+      'mock-aws-s3': false,
+      'aws-sdk': false,
+      'nock': false,
+    };
+    return config;
+  }
 };
 
 export default nextConfig;
