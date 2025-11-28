@@ -1,5 +1,5 @@
 
-import { run } from '@genkit-ai/next';
+import run from '@genkit-ai/next';
 import '@/ai/flows/game-sounds-flow';
 import '@/ai/flows/generate-word-flow';
 import '@/ai/flows/generate-hints';
